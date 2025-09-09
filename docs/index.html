@@ -1,0 +1,17 @@
+<!DOCTYPE html><html lang=en><meta charset=UTF-8><meta name=viewport content="width=device-width, initial-scale=1.0"><title>Web Bluetooth Heart Rate Monitor</title><style>body{color:#333;background-color:#f0f2f5;flex-direction:column;justify-content:center;align-items:center;height:100vh;margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;display:flex}.container{text-align:center;background:#fff;border-radius:12px;min-width:300px;padding:2rem 3rem;box-shadow:0 4px 12px #0000001a}h1{color:#d32f2f;margin-bottom:1rem}button{color:#fff;cursor:pointer;background-color:#d32f2f;border:none;border-radius:8px;padding:12px 24px;font-size:16px;transition:background-color .3s}button:hover{background-color:#b71c1c}button:disabled{cursor:not-allowed;background-color:#ef9a9a}.hr-display{margin:2rem 0}.hr-display span{color:#d32f2f;font-size:6rem;font-weight:700}.hr-display small{color:#5f6368;font-size:1.5rem}#status{color:#5f6368;height:20px;margin-top:1rem}#device-name{color:#333;font-weight:700}</style><body>
+
+    <div class=container>
+        <h1>Heart Rate Monitor ❤️</h1>
+        <div class=hr-display>
+            <span id=hr-value>--</span>
+            <small>BPM</small>
+        </div>
+        <button id=connectButton>Connect to Heart Rate Monitor</button>
+        <p id=status>Disconnected</p>
+        <p id=device-name></p>
+    </div>
+
+    <script>let connectButton=document.getElementById("connectButton"),statusText=document.getElementById("status"),hrValue=document.getElementById("hr-value"),deviceName=document.getElementById("device-name"),bluetoothDevice=null;function handleHeartRateChanged(t){hrValue.textContent=parseHeartRate(t.target.value)}function parseHeartRate(t){return 1&t.getUint8(0)?t.getUint16(1,!0):t.getUint8(1)}function onDisconnected(){statusText.textContent="Device disconnected.",deviceName.textContent="",hrValue.textContent="--",connectButton.disabled=!1,bluetoothDevice=null}connectButton.addEventListener("click",async()=>{if(!navigator.bluetooth){statusText.textContent="Web Bluetooth API is not available.";return}try{statusText.textContent="Scanning for devices...",bluetoothDevice=await navigator.bluetooth.requestDevice({filters:[{services:["heart_rate"]}]}),statusText.textContent="Connecting to device...",deviceName.textContent=`Device: ${bluetoothDevice.name}`,bluetoothDevice.addEventListener("gattserverdisconnected",onDisconnected);let t=await bluetoothDevice.gatt.connect(),e=await t.getPrimaryService("heart_rate"),n=await e.getCharacteristic("heart_rate_measurement");await n.startNotifications(),n.addEventListener("characteristicvaluechanged",handleHeartRateChanged),statusText.textContent="Connected!",connectButton.disabled=!0}catch(t){statusText.textContent=`Error: ${t.message}`,console.error("Connection failed:",t)}});</script>
+
+
+
